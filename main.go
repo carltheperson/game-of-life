@@ -10,23 +10,62 @@ import (
 	"golang.org/x/image/colornames"
 )
 
-func generateBlocks(w int, l int) [][]*imdraw.IMDraw {
-	blockSize := 10.0
-	padding := 2.0
-	x := make([][]*imdraw.IMDraw, w)
-	for i := 0; i < w; i++ {
-		y := make([]*imdraw.IMDraw, l)
-		for j := 0; j < l; j++ {
-			coordX := float64(i)*blockSize + float64(i)*padding
-			coordY := float64(j)*blockSize + float64(j)*padding
+var (
+	title           = "Game of life"
+	windowResizable = false
+	fps             = 10
+	cellSize        = 10.0
+	cellAmount      = 50
+	padding         = 1.0
+	cellColor       = pixel.RGB(0, 0, 0)
+	backgroundColor = colornames.Skyblue
+)
+
+var windowSize = cellSize*float64(cellAmount) + padding*float64(cellAmount)
+var cfg = pixelgl.WindowConfig{
+	Title:     title,
+	Resizable: windowResizable,
+	Bounds:    pixel.R(0, 0, float64(windowSize), float64(windowSize)),
+	VSync:     true,
+}
+
+var neighborCoords = [][]int{
+	{-1, -1}, {-1, 0}, {-1, 1},
+	{0, -1}, {0, 1},
+	{1, -1}, {1, 0}, {1, 1},
+}
+
+var timeForOneFrameMilliseconds = (1.0 / float64(fps)) * 1000
+
+func getIsCellAliveNextRound(isAliveNow bool, numberOfNeighbors int) bool {
+	if isAliveNow && numberOfNeighbors == 2 || isAliveNow && numberOfNeighbors == 3 {
+		return true
+	}
+
+	if !isAliveNow && numberOfNeighbors == 3 {
+		return true
+	}
+
+	if isAliveNow {
+		return false
+	}
+
+	return isAliveNow
+}
+
+func generateCells() [][]*imdraw.IMDraw {
+	x := make([][]*imdraw.IMDraw, cellAmount)
+	for i := 0; i < cellAmount; i++ {
+		y := make([]*imdraw.IMDraw, cellAmount)
+		for j := 0; j < cellAmount; j++ {
+			coordX := float64(i)*cellSize + float64(i)*padding
+			coordY := float64(j)*cellSize + float64(j)*padding
 			imd := imdraw.New(nil)
-			imd.Circle(coordX, coordY)
-			imd.Color = pixel.RGB(0, 0, 0)
-			imd.Ellipse(pixel.V(120, 80), 0)
+			imd.Color = cellColor
 			imd.Push(pixel.V(coordX, coordY))
-			imd.Push(pixel.V(coordX+blockSize, coordY))
-			imd.Push(pixel.V(coordX+blockSize, coordY+blockSize))
-			imd.Push(pixel.V(coordX, coordY+blockSize))
+			imd.Push(pixel.V(coordX+cellSize, coordY))
+			imd.Push(pixel.V(coordX+cellSize, coordY+cellSize))
+			imd.Push(pixel.V(coordX, coordY+cellSize))
 			imd.Polygon(0)
 			y[j] = imd
 		}
@@ -36,30 +75,32 @@ func generateBlocks(w int, l int) [][]*imdraw.IMDraw {
 	return x
 }
 
-func generateMatrix(w int, l int) [][]bool {
-	x := make([][]bool, w)
-	for i := 0; i < w; i++ {
-		y := make([]bool, l)
+func generateMatrix() [][]bool {
+	x := make([][]bool, cellAmount)
+	for i := 0; i < cellAmount; i++ {
+		y := make([]bool, cellAmount)
+		for j := 0; j < cellAmount; j++ {
+			y[j] = false
+		}
 		x[i] = y
 	}
 	return x
 }
 
-func generateRandomMatrix(w int, l int) [][]bool {
+func generateRandomMatrix() [][]bool {
 	rand.Seed(time.Now().Unix())
-	x := make([][]bool, w)
-	for i := 0; i < w; i++ {
-		y := make([]bool, l)
-		for j := 0; j < l; j++ {
+	matrix := generateMatrix()
+
+	for i := range matrix {
+		for j := range matrix[0] {
 			if rand.Intn(2) == 1 {
-				y[j] = true
+				matrix[i][j] = true
 			} else {
-				y[j] = false
+				matrix[i][j] = false
 			}
 		}
-		x[i] = y
 	}
-	return x
+	return matrix
 }
 
 func checkNeighbor(i int, j int, matrix [][]bool) bool {
@@ -69,59 +110,48 @@ func checkNeighbor(i int, j int, matrix [][]bool) bool {
 	return false
 }
 
-func run() {
-	cfg := pixelgl.WindowConfig{
-		Title:  "Game of life",
-		Bounds: pixel.R(0, 0, 1024, 768),
-		VSync:  true,
+func getNumberOfNeighbors(i int, j int, matrix [][]bool) int {
+	numberOfNeighbors := 0
+	for _, coords := range neighborCoords {
+		if checkNeighbor(i+coords[0], j+coords[1], matrix) {
+			numberOfNeighbors += 1
+		}
 	}
+	return numberOfNeighbors
+}
+
+func updateMatrix(matrix [][]bool) [][]bool {
+	newMatrix := generateMatrix()
+	for i := range matrix {
+		for j := range matrix[0] {
+			numberOfNeighbors := getNumberOfNeighbors(i, j, matrix)
+			newMatrix[i][j] = getIsCellAliveNextRound(matrix[i][j], numberOfNeighbors)
+
+		}
+	}
+	return newMatrix
+}
+
+func run() {
 	win, err := pixelgl.NewWindow(cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	blocks := generateBlocks(50, 60)
-	matrix := generateRandomMatrix(50, 60)
-
-	neighborCoords := [][]int{{-1, -1}, {0, -1}, {1, -1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}}
-
-	fps := 10
-	timeForOneFrameMilliseconds := (1.0 / float64(fps)) * 1000
+	cells := generateCells()
+	matrix := generateRandomMatrix()
 
 	start := time.Now()
 	for !win.Closed() {
-		win.Clear(colornames.Skyblue)
+		win.Clear(backgroundColor)
 
-		t := time.Now()
-		elapsed := float64(t.Sub(start).Milliseconds())
+		elapsed := float64(time.Since(start).Milliseconds())
 		if elapsed > timeForOneFrameMilliseconds {
 			start = time.Now()
-			newMatrix := generateMatrix(50, 60)
-			for i := range matrix {
-				for j := range matrix[0] {
-					numberOfNeighbors := 0
-					for _, coords := range neighborCoords {
-						if checkNeighbor(i+coords[0], j+coords[1], matrix) {
-							numberOfNeighbors += 1
-						}
-					}
-
-					if matrix[i][j] && numberOfNeighbors < 2 {
-						newMatrix[i][j] = false
-					} else if !matrix[i][j] && numberOfNeighbors == 3 {
-						newMatrix[i][j] = true
-					} else if matrix[i][j] && numberOfNeighbors > 3 {
-						newMatrix[i][j] = false
-					} else {
-						newMatrix[i][j] = matrix[i][j]
-					}
-
-				}
-			}
-			matrix = newMatrix
+			matrix = updateMatrix(matrix)
 		}
 
-		for i, yBlocks := range blocks {
+		for i, yBlocks := range cells {
 			for j, block := range yBlocks {
 				if matrix[i][j] {
 					block.Draw(win)
@@ -134,6 +164,5 @@ func run() {
 }
 
 func main() {
-	generateBlocks(6, 5)
 	pixelgl.Run(run)
 }
