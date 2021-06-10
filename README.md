@@ -3,9 +3,7 @@
 This is my take on Conway's Game of Life.
 It is written in Go using the 2D library [Pixel](https://github.com/faiface/pixel).
 
-![](images/preview-random.gif)
-
-![](images/preview.gif)
+![](images/preview-random.gif) ![](images/preview.gif)
 
 # Running
 
@@ -28,6 +26,16 @@ Run project.
 ```bash
 go run .
 ```
+
+# Controls
+
+| Description            | Key           |
+| ---------------------- | ------------- |
+| Pausing/unpausing      | _SPACE_       |
+| Fill with Random cells | _R_           |
+| Clear all cells        | _C_           |
+| Place cell             | _LEFT CLICK_  |
+| Remove cell            | _RIGHT CLICK_ |
 
 # Configurations
 
