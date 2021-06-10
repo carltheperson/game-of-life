@@ -14,11 +14,11 @@ var (
 	title           = "Game of life"
 	windowResizable = false
 	fps             = 10
-	cellSize        = 10.0
-	cellAmount      = 50
+	cellSize        = 8.0
+	cellAmount      = 100
 	padding         = 1.0
 	cellColor       = pixel.RGB(0, 0, 0)
-	backgroundColor = colornames.Skyblue
+	backgroundColor = colornames.Azure
 )
 
 var windowSize = cellSize*float64(cellAmount) + padding*float64(cellAmount)
@@ -53,26 +53,24 @@ func getIsCellAliveNextRound(isAliveNow bool, numberOfNeighbors int) bool {
 	return isAliveNow
 }
 
-func generateCells() [][]*imdraw.IMDraw {
-	x := make([][]*imdraw.IMDraw, cellAmount)
+func drawCells(matrix [][]bool, win *pixelgl.Window) {
+	imd := imdraw.New(nil)
 	for i := 0; i < cellAmount; i++ {
-		y := make([]*imdraw.IMDraw, cellAmount)
 		for j := 0; j < cellAmount; j++ {
+			if !matrix[i][j] {
+				continue
+			}
+
 			coordX := float64(i)*cellSize + float64(i)*padding
 			coordY := float64(j)*cellSize + float64(j)*padding
-			imd := imdraw.New(nil)
 			imd.Color = cellColor
 			imd.Push(pixel.V(coordX, coordY))
-			imd.Push(pixel.V(coordX+cellSize, coordY))
 			imd.Push(pixel.V(coordX+cellSize, coordY+cellSize))
-			imd.Push(pixel.V(coordX, coordY+cellSize))
-			imd.Polygon(0)
-			y[j] = imd
+			imd.Rectangle(0)
 		}
-		x[i] = y
 
 	}
-	return x
+	imd.Draw(win)
 }
 
 func generateMatrix() [][]bool {
@@ -138,7 +136,6 @@ func run() {
 		panic(err)
 	}
 
-	cells := generateCells()
 	matrix := generateRandomMatrix()
 
 	start := time.Now()
@@ -151,13 +148,7 @@ func run() {
 			matrix = updateMatrix(matrix)
 		}
 
-		for i, yBlocks := range cells {
-			for j, block := range yBlocks {
-				if matrix[i][j] {
-					block.Draw(win)
-				}
-			}
-		}
+		drawCells(matrix, win)
 
 		win.Update()
 	}
