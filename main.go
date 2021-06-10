@@ -14,11 +14,11 @@ var (
 	title           = "Game of life"
 	windowResizable = false
 	fps             = 10
-	cellSize        = 8.0
-	cellAmount      = 100
+	cellSize        = 10.0
+	cellAmount      = 80
 	padding         = 1.0
-	cellColor       = pixel.RGB(0, 0, 0)
-	backgroundColor = colornames.Azure
+	cellColor       = colornames.Darkcyan
+	backgroundColor = colornames.Lightcyan
 )
 
 var windowSize = cellSize*float64(cellAmount) + padding*float64(cellAmount)
@@ -60,7 +60,6 @@ func drawCells(matrix [][]bool, win *pixelgl.Window) {
 			if !matrix[i][j] {
 				continue
 			}
-
 			coordX := float64(i)*cellSize + float64(i)*padding
 			coordY := float64(j)*cellSize + float64(j)*padding
 			imd.Color = cellColor
@@ -136,25 +135,43 @@ func run() {
 		panic(err)
 	}
 
-	matrix := generateRandomMatrix()
+	matrix := generateMatrix()
+
+	paused := true
 
 	start := time.Now()
 	for !win.Closed() {
 		win.Clear(backgroundColor)
 
 		elapsed := float64(time.Since(start).Milliseconds())
-		if elapsed > timeForOneFrameMilliseconds {
+		if elapsed > timeForOneFrameMilliseconds && !paused {
 			start = time.Now()
 			matrix = updateMatrix(matrix)
 		}
 
 		drawCells(matrix, win)
-		if win.Pressed(pixelgl.MouseButton1) {
+		if win.Pressed(pixelgl.MouseButton1) || win.Pressed(pixelgl.MouseButton2) {
 			x := win.MousePosition().X
 			y := win.MousePosition().Y
 			i := int((x / windowSize) * float64(cellAmount))
 			j := int((y / windowSize) * float64(cellAmount))
-			matrix[i][j] = true
+			if win.Pressed(pixelgl.MouseButton1) {
+				matrix[i][j] = true
+			} else {
+				matrix[i][j] = false
+			}
+		}
+
+		if win.JustPressed(pixelgl.KeySpace) {
+			paused = !paused
+		}
+
+		if win.JustPressed((pixelgl.KeyR)) {
+			matrix = generateRandomMatrix()
+		}
+
+		if win.JustPressed((pixelgl.KeyC)) {
+			matrix = generateMatrix()
 		}
 
 		win.Update()
