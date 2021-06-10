@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/rand"
+
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
@@ -33,6 +35,22 @@ func generateBlocks(w int, l int) [][]*imdraw.IMDraw {
 	return x
 }
 
+func generateMatrix(w int, l int) [][]bool {
+	x := make([][]bool, w)
+	for i := 0; i < w; i++ {
+		y := make([]bool, l)
+		for j := 0; j < l; j++ {
+			if rand.Intn(2) == 1 {
+				y[j] = true
+			} else {
+				y[j] = false
+			}
+		}
+		x[i] = y
+	}
+	return x
+}
+
 func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Game of life",
@@ -44,13 +62,16 @@ func run() {
 		panic(err)
 	}
 
-	blocks := generateBlocks(5, 6)
+	blocks := generateBlocks(50, 60)
+	matrix := generateMatrix(50, 60)
 
 	for !win.Closed() {
 		win.Clear(colornames.Skyblue)
-		for _, yBlocks := range blocks {
-			for _, block := range yBlocks {
-				block.Draw(win)
+		for i, yBlocks := range blocks {
+			for j, block := range yBlocks {
+				if matrix[i][j] {
+					block.Draw(win)
+				}
 			}
 		}
 		win.Update()
