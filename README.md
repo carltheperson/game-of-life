@@ -3,7 +3,9 @@
 This is my take on Conway's Game of Life.
 It is written in Go using the 2D library [Pixel](https://github.com/faiface/pixel).
 
-![](preview.gif)
+![](images/preview-random.gif)
+
+![](images/preview.gif)
 
 # Running
 
@@ -42,14 +44,14 @@ var (
 	cellSize        = 10.0
 	cellAmount      = 50
 	padding         = 1.0
-	cellColor       = pixel.RGB(0, 0, 0)
-	backgroundColor = colornames.Skyblue
+	cellColor       = colornames.Darkcyan
+	backgroundColor = colornames.Lightcyan
 )
 ```
 
 Here is an example with different colors.
 
-![](screenshot.png)
+![](images/screenshot.png)
 
 # License
 
