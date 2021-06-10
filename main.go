@@ -149,6 +149,13 @@ func run() {
 		}
 
 		drawCells(matrix, win)
+		if win.Pressed(pixelgl.MouseButton1) {
+			x := win.MousePosition().X
+			y := win.MousePosition().Y
+			i := int((x / windowSize) * float64(cellAmount))
+			j := int((y / windowSize) * float64(cellAmount))
+			matrix[i][j] = true
+		}
 
 		win.Update()
 	}
