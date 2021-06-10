@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"time"
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
@@ -65,8 +66,24 @@ func run() {
 	blocks := generateBlocks(50, 60)
 	matrix := generateMatrix(50, 60)
 
+	fps := 1
+	timeForOneFrameMilliseconds := (1.0 / float64(fps)) * 1000
+
+	start := time.Now()
 	for !win.Closed() {
 		win.Clear(colornames.Skyblue)
+
+		t := time.Now()
+		elapsed := float64(t.Sub(start).Milliseconds())
+		if elapsed > timeForOneFrameMilliseconds {
+			start = time.Now()
+			for i := range matrix {
+				for j := range matrix[0] {
+					matrix[i][j] = !matrix[i][j]
+				}
+			}
+		}
+
 		for i, yBlocks := range blocks {
 			for j, block := range yBlocks {
 				if matrix[i][j] {
@@ -74,6 +91,7 @@ func run() {
 				}
 			}
 		}
+
 		win.Update()
 	}
 }
