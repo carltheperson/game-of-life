@@ -27,12 +27,14 @@ Run project.
 go run .
 ```
 
+_Note that the game starts paused with no cells_
+
 # Controls
 
 | Description            | Key           |
 | ---------------------- | ------------- |
 | Pausing/unpausing      | _SPACE_       |
-| Fill with Random cells | _R_           |
+| Fill with random cells | _R_           |
 | Clear all cells        | _C_           |
 | Place cell             | _LEFT CLICK_  |
 | Remove cell            | _RIGHT CLICK_ |
