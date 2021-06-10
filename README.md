@@ -30,7 +30,7 @@ go run .
 # Configurations
 
 At the top of the `main.go` file you will find all the configurations.
-Change their value to change to functionality of the game.
+Change their value to change the functionality of the game.
 
 They currently look like this.
 
