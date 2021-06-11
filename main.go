@@ -38,16 +38,24 @@ var neighborCoords = [][]int{
 var timeForOneFrameMilliseconds = (1.0 / float64(fps)) * 1000
 
 func getIsCellAliveNextRound(isAliveNow bool, numberOfNeighbors int) bool {
-	if isAliveNow && numberOfNeighbors == 2 || isAliveNow && numberOfNeighbors == 3 {
+	// Any live cell with fewer than two live neighbours dies, as if by underpopulation.
+	if isAliveNow && numberOfNeighbors < 2 {
+		return false
+	}
+
+	// Any live cell with two or three live neighbours lives on to the next generation.
+	if isAliveNow && (numberOfNeighbors == 2 || numberOfNeighbors == 3) {
 		return true
 	}
 
+	// Any live cell with more than three live neighbours dies, as if by overpopulation.
+	if isAliveNow && numberOfNeighbors > 3 {
+		return false
+	}
+
+	// Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 	if !isAliveNow && numberOfNeighbors == 3 {
 		return true
-	}
-
-	if isAliveNow {
-		return false
 	}
 
 	return isAliveNow
